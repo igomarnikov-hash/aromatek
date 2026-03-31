@@ -6,11 +6,11 @@ WORKDIR /app
 
 COPY . .
 
-# Backend
-RUN cd backend && rm -f package-lock.json && npm install --production --force
+# Backend deps
+RUN cd backend && rm -f package-lock.json && npm install --production
 
-# Frontend build
-RUN cd frontend && rm -f package-lock.json && npm install --force && npm run build && cp -r dist /app/dist
+# Frontend: clean install (no lock file = fresh platform-correct packages)
+RUN cd frontend && rm -f package-lock.json && npm install && npm run build && cp -r dist /app/dist
 
 EXPOSE 3001
 ENV NODE_ENV=production
