@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: aromapro
+    ports:
+      - "${APP_PORT:-3001}:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DB_PATH=/app/data/aromapro.db
+    volumes:
+      - app-data:/app/data
+      - app-backups:/app/backups
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - aromapro-net
+
+  nginx:
+    image: nginx:alpine
+    container_name: aromapro-nginx
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - app
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+    networks:
+      - aromapro-net
+
+  backup:
+    build: .
+    container_name: aromapro-backup
+    entrypoint: /bin/sh
+    command: >
+      -c "while true; do
+        TIMESTAMP=$$(date +%Y%m%d_%H%M%S);
+        if [ -f /app/data/aromapro.db ]; then
+          cp /app/data/aromapro.db /app/backups/aromapro_$$TIMESTAMP.db;
+          echo \"[$$TIMESTAMP] Backup created\";
+          find /app/backups -name '*.db' -mtime +7 -delete;
+          echo \"Old backups cleaned\";
+        fi;
+        sleep 86400;
+      done"
+    volumes:
+      - app-data:/app/data:ro
+      - app-backups:/app/backups
+    restart: unless-stopped
+    networks:
+      - aromapro-net
+
+volumes:
+  app-data:
+    driver: local
+  app-backups:
+    driver: local
+
+networks:
+  aromapro-net:
+    driver: bridge

@@ -1,0 +1,12 @@
+{
+  "name": "aromatek-production-system",
+  "version": "1.0.0",
+  "description": "АромаТек — система управления производством",
+  "scripts": {
+    "start": "node backend/server.js",
+    "build": "cd frontend && npm install && npm run build -- --outDir ../dist"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

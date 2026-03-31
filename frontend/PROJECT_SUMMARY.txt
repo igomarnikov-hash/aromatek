@@ -1,0 +1,203 @@
+================================================================================
+PRODUCTION MANAGEMENT SYSTEM - REACT FRONTEND
+АромаПро - Система управления производством воздухоароматизаторов
+================================================================================
+
+PROJECT LOCATION:
+/sessions/stoic-cool-bohr/mnt/SaaS/production-system/frontend/
+
+COMPLETE FILE STRUCTURE:
+├── index.html              HTML entry point with meta tags
+├── package.json            Dependencies & scripts
+├── vite.config.js         Vite configuration with proxy
+├── SETUP.md               Installation & deployment guide
+├── PROJECT_SUMMARY.txt    This file
+├── .gitignore
+│
+├── src/
+│   ├── main.jsx           React app mount point
+│   ├── App.jsx            Route configuration & auth guard
+│   ├── api.js             API client helper
+│   │
+│   ├── styles/
+│   │   └── index.css      Complete design system CSS (2000+ lines)
+│   │
+│   ├── context/
+│   │   └── AuthContext.jsx Auth state management & persistence
+│   │
+│   ├── components/
+│   │   ├── Layout.jsx     Main layout with topbar & sidebar
+│   │   └── Sidebar.jsx    Navigation menu with role-based filtering
+│   │
+│   └── pages/
+│       ├── LoginPage.jsx  User selection login interface
+│       ├── DashboardPage.jsx Stats, progress, alerts, recent activity
+│       ├── MaterialsPage.jsx Warehouse management with CRUD
+│       ├── TechCardsPage.jsx Technology card management
+│       ├── TasksPage.jsx  Task creation & assignment
+│       ├── WorkshopPage.jsx Operator workshop interface
+│       └── SettingsPage.jsx Admin settings panel
+
+TECHNOLOGY STACK:
+- React 18.2
+- React Router DOM 6
+- Vite build tool
+- Lucide React icons
+- Recharts (ready for advanced charts)
+- CSS (no frameworks - custom design system)
+
+KEY FEATURES IMPLEMENTED:
+
+1. AUTHENTICATION
+   - Demo login with 5 pre-configured users
+   - Role-based access control (5 roles)
+   - Session storage persistence
+   - User profile display in topbar
+
+2. DASHBOARD
+   - Production stats (today's count, completed/pending tasks)
+   - Material status indicators with progress bars
+   - Color-coded status (green/yellow/red)
+   - Recent activity feed
+   - Responsive grid layout
+
+3. MATERIALS/WAREHOUSE
+   - Full CRUD for materials
+   - Stock level tracking
+   - Auto-alerts for critical levels
+   - Material receive/consume operations
+   - Tabular view with action buttons
+
+4. TECHNOLOGY CARDS
+   - Technical specification management
+   - Material lists and process steps
+   - Duration tracking
+   - Grid card layout
+   - Edit/delete functionality
+
+5. PRODUCTION TASKS
+   - Task creation with priority levels
+   - Assignment to operators
+   - Progress tracking with percentage
+   - Status workflow: pending → in_progress → completed/defect
+   - Card-based UI for task visibility
+
+6. WORKSHOP (OPERATOR INTERFACE)
+   - Simplified interface for line workers
+   - Active task with timer
+   - Tech card display alongside task
+   - Quick start/complete/defect actions
+   - Pending queue and completed history
+
+7. SETTINGS
+   - Company configuration
+   - User management table
+   - Notification preferences
+   - Security & backup options
+   - Tabbed interface
+
+DESIGN SYSTEM:
+
+Color Scheme:
+- Primary: #2563eb (blue)
+- Success: #16a34a (green) - normal/completed status
+- Warning: #f59e0b (amber) - attention needed
+- Danger: #dc2626 (red) - critical/error
+- Info: #0ea5e9 (cyan) - information
+
+Dark Theme:
+- BG Primary: #0f172a (main background)
+- BG Secondary: #1e293b (cards)
+- BG Tertiary: #334155 (subtle backgrounds)
+- Text Primary: #f1f5f9 (main text)
+- Text Secondary: #cbd5e1 (secondary text)
+- Border: #475569
+
+Layout Dimensions:
+- Sidebar expanded: 250px
+- Sidebar collapsed: 64px
+- Topbar height: 56px
+- Responsive breakpoints: 768px (tablet), 480px (mobile)
+
+UI COMPONENTS:
+
+Buttons: .btn-primary, .btn-success, .btn-warning, .btn-danger, .btn-secondary
+Badges: .badge-success, .badge-warning, .badge-danger, .badge-info
+Alerts: .alert-success, .alert-warning, .alert-danger, .alert-info
+Cards: .card with .card-header, .card-body, .card-footer
+Tables: Standard HTML tables with dark theme
+Forms: Input, textarea, select with focus states
+Progress: .progress with .progress-bar variants
+Grid: .grid with .grid-2, .grid-3, .grid-4 responsive layouts
+
+API INTEGRATION:
+
+Base URL: /api (proxied to http://localhost:3001 in dev)
+
+All endpoints mocked with demo data:
+- GET /api/users
+- POST /api/auth/login
+- GET /api/dashboard
+- GET/POST/PUT /api/materials
+- POST /api/materials/:id/receive
+- POST /api/materials/:id/consume
+- GET /api/materials/alerts
+- GET/POST/PUT /api/techcards
+- GET/POST/PUT /api/tasks
+- POST /api/tasks/:id/start, /complete, /defect
+- GET /api/events
+
+LANGUAGE:
+
+100% Russian UI:
+- Menu items in Russian
+- Form labels in Russian
+- Page titles in Russian
+- Buttons in Russian
+- Error/success messages in Russian
+- Demo data in Russian
+
+INSTALLATION:
+
+1. npm install
+2. npm run dev (starts on port 5173)
+3. Backend should run on port 3001
+
+PRODUCTION BUILD:
+
+npm run build (outputs to dist/)
+
+FEATURES HIGHLIGHTS:
+
+✓ Mobile responsive (tested at 480px, 768px, 1200px+)
+✓ Collapsible sidebar with smooth animations
+✓ Dark industrial theme for workshop use
+✓ High contrast for visibility
+✓ Role-based menu filtering
+✓ Timer for task execution (workshop page)
+✓ Progress tracking
+✓ Status color coding
+✓ Event notifications panel
+✓ User avatar colors per role
+✓ Fully functional forms (all pages)
+✓ Demo fallback data (works offline)
+✓ Session persistence
+✓ CSS custom properties for easy theming
+✓ No external UI library dependencies
+
+DEMO USERS:
+
+1. Александр Петров - Владелец (blue)
+2. Мария Сидорова - Технолог (purple)
+3. Иван Иванов - Нач. производства (cyan)
+4. Елена Федорова - Кладовщик (amber)
+5. Николай Сергеев - Оператор (green)
+
+READY FOR:
+- Backend integration (just swap demo data with real API calls)
+- Theme customization (modify CSS variables)
+- Feature additions (component structure supports easy expansion)
+- Localization (all strings extracted and in Russian)
+- Mobile deployment (fully responsive)
+
+================================================================================

@@ -1,0 +1,153 @@
+================================================================================
+QUICK START GUIDE - АромаПро Production Management System
+================================================================================
+
+STEP 1: Install Dependencies
+-----------------------------
+$ cd frontend
+$ npm install
+
+Wait for installation to complete. This installs:
+- react@18.2.0
+- react-dom@18.2.0
+- react-router-dom@6.20.0
+- lucide-react@0.292.0
+- recharts@2.10.0
+- vite@5.0.0
+- @vitejs/plugin-react@4.2.0
+
+STEP 2: Start Development Server
+---------------------------------
+$ npm run dev
+
+Output should show:
+> VITE v5.0.0 ready in XXX ms
+> ➜  Local:   http://localhost:5173/
+
+Open http://localhost:5173 in your browser.
+
+STEP 3: Make Sure Backend is Running
+-------------------------------------
+Backend should be running on http://localhost:3001
+
+If backend is not running, the app will:
+1. Show demo data automatically
+2. Still be fully functional for testing
+3. Allow you to test all UI features
+
+STEP 4: Login
+-------------
+You'll see the login screen with 5 demo users:
+
+1. Александр Петров (Владелец) - Owner account
+   → Can access: Dashboard, Warehouse, Tech Cards, Tasks, Workshop, Settings
+
+2. Мария Сидорова (Технолог) - Technologist
+   → Can access: Dashboard, Warehouse, Tech Cards
+
+3. Иван Иванов (Нач. производства) - Production Manager
+   → Can access: Dashboard, Warehouse, Tech Cards, Tasks, Workshop
+
+4. Елена Федорова (Кладовщик) - Warehouse Manager
+   → Can access: Dashboard, Warehouse
+
+5. Николай Сергеев (Оператор) - Operator
+   → Can access: Dashboard, Workshop only
+
+STEP 5: Explore the Application
+--------------------------------
+
+DASHBOARD (Дашборд)
+- View production statistics
+- Check material and task status
+- See recent activity
+
+WAREHOUSE (Склад)
+- Manage materials
+- Track inventory levels
+- Handle material receive/consume
+
+TECH CARDS (Техкарты)
+- Create and edit technology specifications
+- Define materials and process steps
+
+TASKS (Задачи)
+- Create production tasks
+- Assign to workers
+- Track progress and status
+
+WORKSHOP (Цех)
+- Operator's main interface
+- See current active task with timer
+- View technical card while working
+- Mark task as complete or defect
+
+SETTINGS (Настройки)
+- Only for owner account
+- Configure company info
+- Manage users
+- Set notifications
+- Security & backup options
+
+STEP 6: For Production Build
+----------------------------
+$ npm run build
+
+Output files will be in ./dist/ folder
+Ready to deploy to any static hosting.
+
+STEP 7: Preview Production Build (Optional)
+-------------------------------------------
+$ npm run preview
+
+This runs the built version locally for testing.
+
+TROUBLESHOOTING:
+
+Q: Port 5173 already in use?
+A: npm run dev will automatically try next available port
+
+Q: Backend not running - what to do?
+A: App works with demo data. Click any user to login and test UI.
+
+Q: Components not showing?
+A: Clear browser cache (Ctrl+Shift+Delete) and reload
+
+Q: Styles look broken?
+A: Make sure index.css loaded from src/styles/index.css
+
+Q: Backend API calls failing?
+A: Check if backend runs on http://localhost:3001
+   App will use demo data as fallback
+
+WHAT'S INCLUDED:
+
+✓ Complete React setup with Vite
+✓ All 7 pages fully implemented
+✓ Dark industrial design theme
+✓ Responsive layout (mobile/tablet/desktop)
+✓ Authentication with role-based access
+✓ Material warehouse management
+✓ Technology cards system
+✓ Production task management
+✓ Workshop operator interface
+✓ Admin settings panel
+✓ Demo data for testing
+✓ API integration layer (ready for real backend)
+✓ Russian language UI
+✓ 100% functional forms and workflows
+
+NEXT STEPS:
+
+1. Familiarize yourself with the UI
+2. Test different user roles
+3. When ready, connect to real backend API
+4. Customize colors in src/styles/index.css (CSS variables)
+5. Add your company logo
+6. Deploy to production
+
+For more details, see SETUP.md
+
+Happy production managing! 🚀
+
+================================================================================

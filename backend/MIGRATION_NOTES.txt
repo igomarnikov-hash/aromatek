@@ -1,0 +1,55 @@
+=== MIGRATION FROM BETTER-SQLITE3 TO SQL.JS ===
+
+COMPLETED CHANGES:
+
+1. Database Layer (database.js)
+   - Replaced better-sqlite3 with sql.js (pure JavaScript SQLite)
+   - Async initialization: initDatabase() loads WASM and returns db wrapper
+   - Created wrapper object that mimics better-sqlite3 API:
+     * db.prepare(sql).get(...params) - returns first row as object
+     * db.prepare(sql).all(...params) - returns array of row objects
+     * db.prepare(sql).run(...params) - executes and returns {changes, lastInsertRowid}
+     * db.exec(sql) - executes raw SQL
+   - Database persists to production.db file using fs.writeFileSync
+   - Auto-save on every write operation
+   - Loads from file if exists on startup
+   - All table schemas preserved exactly
+   - All seed data restored exactly
+
+2. Server Initialization (server.js)
+   - Changed to async startup function
+   - Database initialization is awaited before server starts
+   - Routes now receive db instance as parameter
+   - All middleware (CORS, morgan, express.json) unchanged
+   - Error handling and 404 handlers unchanged
+
+3. Route Files (auth.js, materials.js, techcards.js, tasks.js, dashboard.js, events.js)
+   - Changed from: const db = require('../database')
+   - Changed to: module.exports = function(db) { ... return router; }
+   - All endpoint logic preserved exactly
+   - All query patterns preserved
+   - All response formats preserved
+   - All error handling preserved
+
+4. Package.json
+   - Already updated with sql.js ^1.14.1
+   - Removed better-sqlite3 dependency
+
+KEY DIFFERENCES:
+- Database initialization is now async (requires await in server.js)
+- All database operations are synchronous after init (same as before)
+- Database file is JSON-serializable (can be transmitted over network)
+- WASM module loads on first init (~300KB)
+- No native compilation needed - pure JavaScript solution
+
+TESTING CHECKLIST:
+- All SQL queries execute correctly
+- Seed data inserts properly
+- Foreign keys work
+- Prepared statements with parameters work
+- Both .get() and .all() return proper formats
+- INSERT operations return lastInsertRowid
+- Database persists to file
+- Pagination queries (LIMIT/OFFSET) work
+- JOIN queries work correctly
+- Aggregation queries (SUM, COUNT) work
