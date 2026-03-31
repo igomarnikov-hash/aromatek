@@ -1,17 +1,17 @@
 FROM node:20-alpine
 
-RUN apk add --no-cache curl
+RUN apk add --no-cache curl python3 make g++
 
 WORKDIR /app
 
 # Copy all source files
 COPY . .
 
-# Install backend dependencies
-RUN cd backend && npm install --production
+# Install backend dependencies (fresh, no lock file)
+RUN cd backend && rm -f package-lock.json && npm install --production
 
-# Install frontend dependencies and build
-RUN cd frontend && npm install && npm run build && cp -r dist /app/dist
+# Build frontend (fresh install for correct platform)
+RUN cd frontend && rm -f package-lock.json && npm install && npm run build && cp -r dist /app/dist
 
 EXPOSE 3001
 
