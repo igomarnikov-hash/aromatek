@@ -29,7 +29,7 @@ const Sidebar = ({ collapsed, onToggle, userRole, onLinkClick }) => {
   const role = userRole || '';
 
   const menuItems = [
-    { label: 'Дашборд', icon: LayoutDashboard, path: '/', roles: ['all'] },
+    { label: 'Панель показателей', icon: LayoutDashboard, path: '/', roles: ['all'] },
     { label: 'Склад', icon: Warehouse, path: '/materials', roles: ['admin', 'technologist', 'warehouse', 'production_manager'] },
     { label: 'Техкарты', icon: BookOpen, path: '/techcards', roles: ['admin', 'technologist', 'production_manager'] },
     { label: 'Задачи', icon: ClipboardList, path: '/tasks', roles: ['admin', 'production_manager'] },

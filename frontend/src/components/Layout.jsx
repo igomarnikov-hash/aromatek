@@ -96,7 +96,7 @@ const Layout = ({ children }) => {
             >
               {isMobile && !sidebarCollapsed ? <X size={20} /> : <Menu size={20} />}
             </button>
-            <h2 className="topbar-title" style={{ margin: 0 }}>АромаТек</h2>
+            <h2 className="topbar-title" style={{ margin: 0 }}>Система управления производством</h2>
           </div>
 
           <div className="topbar-right">
