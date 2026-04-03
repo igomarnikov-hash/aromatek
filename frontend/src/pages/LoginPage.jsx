@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Wrench } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import Logo from '../components/Logo';
 
 const ROLE_LABELS = {
   admin: 'Владелец',
@@ -68,25 +68,9 @@ const LoginPage = () => {
       <div style={{ maxWidth: '720px', width: '100%' }}>
         {/* Logo & Header */}
         <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '56px', height: '56px',
-            borderRadius: '16px',
-            background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.1))',
-            border: '1px solid rgba(59, 130, 246, 0.25)',
-            marginBottom: '20px',
-            boxShadow: '0 0 30px rgba(59, 130, 246, 0.12)'
-          }}>
-            <Wrench size={28} color="#3b82f6" />
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+            <Logo size={52} />
           </div>
-          <h1 style={{
-            fontSize: '2rem', fontWeight: 700, color: '#0f172a',
-            margin: '0 0 8px 0', letterSpacing: '-0.03em'
-          }}>
-            АромаТек
-          </h1>
           <p style={{ fontSize: '1rem', color: '#64748b', margin: '0 0 24px 0' }}>
             Система управления производством
           </p>

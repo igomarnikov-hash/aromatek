@@ -12,6 +12,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
+import Logo from './Logo';
 
 const ROLE_MAP = {
   'admin': 'admin',
@@ -48,8 +49,10 @@ const Sidebar = ({ collapsed, onToggle, userRole, onLinkClick }) => {
     <div className={`layout-sidebar ${collapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-header">
         <div className="sidebar-logo">
-          <Wrench size={24} />
-          <span>АромаТек</span>
+          {collapsed
+            ? <Logo size={28} markOnly={true} />
+            : <Logo size={28} />
+          }
         </div>
       </div>
 

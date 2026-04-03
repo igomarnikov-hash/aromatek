@@ -395,6 +395,9 @@ const ChecklistItem = ({ item, index, sectionColor, onStatusChange, onCommentCha
   const [editingComment, setEditingComment] = useState(false);
   const statusCfg = STATUS_CONFIG[item.status] || STATUS_CONFIG.na;
   const StatusIcon = statusCfg.icon;
+  // Local ref to the hidden file <input> — fixes bug where fileInputRef is a
+  // callback function (not DOM node), so calling .click() on it would silently fail.
+  const localInputRef = React.useRef(null);
 
   const handleCommentBlur = () => {
     setEditingComment(false);
@@ -517,7 +520,7 @@ const ChecklistItem = ({ item, index, sectionColor, onStatusChange, onCommentCha
             </div>
           ) : (
             <button
-              onClick={() => fileInputRef?.click()}
+              onClick={() => localInputRef.current?.click()}
               style={{
                 width: '60px', height: '60px', borderRadius: '8px',
                 border: '1.5px dashed rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.02)',
@@ -535,7 +538,10 @@ const ChecklistItem = ({ item, index, sectionColor, onStatusChange, onCommentCha
             type="file"
             accept="image/*"
             capture="environment"
-            ref={fileInputRef}
+            ref={(el) => {
+              localInputRef.current = el;
+              if (typeof fileInputRef === 'function') fileInputRef(el);
+            }}
             style={{ display: 'none' }}
             onChange={e => { if (e.target.files[0]) onPhotoUpload(e.target.files[0]); e.target.value = ''; }}
           />
