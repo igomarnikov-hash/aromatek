@@ -10,7 +10,7 @@ COPY . .
 RUN cd backend && rm -f package-lock.json && npm install --production
 
 # Frontend: fresh install on glibc x64, then build
-RUN cd frontend && rm -f package-lock.json && npm install && npm run build && cp -r dist /app/dist
+RUN cd frontend && rm -f package-lock.json && npm install && npm run build && rm -rf /app/dist && mv dist /app/dist
 
 EXPOSE 3001
 ENV NODE_ENV=production
