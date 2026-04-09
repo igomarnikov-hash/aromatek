@@ -57,6 +57,23 @@ const api = {
       console.error(`PUT ${url} failed:`, error);
       throw error;
     }
+  },
+
+  async patch(url, data = {}) {
+    try {
+      const response = await fetch(`${API_BASE_URL}${url}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+        credentials: 'include'
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      console.error(`PATCH ${url} failed:`, error);
+      throw error;
+    }
   }
 };
 

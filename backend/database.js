@@ -188,6 +188,12 @@ async function initializeDatabase(db) {
     )
   `);
 
+  // Migration: add timing columns to batch_operations if they don't exist
+  try { db.run(`ALTER TABLE batch_operations ADD COLUMN started_at DATETIME DEFAULT NULL`); } catch(e) {}
+  try { db.run(`ALTER TABLE batch_operations ADD COLUMN completed_at DATETIME DEFAULT NULL`); } catch(e) {}
+  try { db.run(`ALTER TABLE batch_operations ADD COLUMN time_locked INTEGER DEFAULT 0`); } catch(e) {}
+  try { db.run(`ALTER TABLE batch_operations ADD COLUMN op_status TEXT DEFAULT 'pending'`); } catch(e) {}
+
   // События засветки трафаретов
   db.run(`
     CREATE TABLE IF NOT EXISTS exposure_events (
