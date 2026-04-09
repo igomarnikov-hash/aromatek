@@ -339,22 +339,27 @@ const BatchDetailView = ({ batch: initialBatch, onBack, onBatchUpdated }) => {
   }, [batch.id]);
 
   const loadAll = async () => {
+    setLoading(true);
+    // Load batch info
     try {
-      setLoading(true);
-      const [batchData, opsData] = await Promise.all([
-        api.get(`/batches/${batch.id}`),
-        api.get(`/batches/${batch.id}/operations`)
-      ]);
+      const batchData = await api.get(`/batches/${batch.id}`);
       const updatedBatch = batchData?.data || batchData;
-      setBatch(updatedBatch);
-      setNewStatus(updatedBatch.status);
-      setOperations(Array.isArray(opsData) ? opsData : opsData.data || []);
+      if (updatedBatch?.id) {
+        setBatch(updatedBatch);
+        setNewStatus(updatedBatch.status);
+      }
     } catch (err) {
       console.error('Ошибка при загрузке партии:', err);
-      setError('Ошибка при загрузке данных');
-    } finally {
-      setLoading(false);
     }
+    // Load operations separately — не блокируем отображение если endpoint ещё не задеплоен
+    try {
+      const opsData = await api.get(`/batches/${batch.id}/operations`);
+      setOperations(Array.isArray(opsData) ? opsData : opsData.data || []);
+    } catch (err) {
+      console.error('Ошибка при загрузке операций (endpoint может ещё не задеплоен):', err);
+      // Не показываем ошибку пользователю — просто пустой список
+    }
+    setLoading(false);
   };
 
   const handleSaveStatus = async () => {
