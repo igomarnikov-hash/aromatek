@@ -64,10 +64,9 @@ const ScreensPage = () => {
       await api.post('/screens', {
         serialNumber: formData.serialNumber,
         emulsionType: formData.emulsionType,
-        emulsionAppliedDate: formData.emulsionAppliedDate,
-        exposureTime: Number(formData.exposureTime),
-        printCyclesLimit: Number(formData.printCyclesLimit),
-        userId: user?.id
+        emulsionAppliedAt: formData.emulsionAppliedDate,
+        exposureTimeSeconds: Number(formData.exposureTime),
+        printCyclesLimit: Number(formData.printCyclesLimit)
       });
       setFormData({
         serialNumber: '',

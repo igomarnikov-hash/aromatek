@@ -3,13 +3,13 @@ const express = require('express');
 module.exports = function(db) {
   const router = express.Router();
 
-  // Helper to generate session number
+  // Helper to generate diecut batch number with ВЫР- prefix
   function generateSessionNumber() {
     const now = new Date();
     const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
     const counter = db.prepare('SELECT COUNT(*) as count FROM diecut_sessions WHERE created_at LIKE ?').get(`${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}%`);
     const nnn = String((counter.count % 1000) + 1).padStart(3, '0');
-    return `VR-${dateStr}-${nnn}`;
+    return `ВЫР-${dateStr}-${nnn}`;
   }
 
   // GET all diecut sessions with optional filter

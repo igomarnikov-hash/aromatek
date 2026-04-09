@@ -45,7 +45,7 @@ const DieCutPage = () => {
       const data = await api.get('/diecut');
       setSessions(Array.isArray(data) ? data : data.data || []);
     } catch (err) {
-      console.error('Ошибка при загрузке сеансов вырубки:', err);
+      console.error('Ошибка при загрузке партий вырубки:', err);
       setError('Ошибка при загрузке данных');
     } finally {
       setLoading(false);
@@ -80,8 +80,8 @@ const DieCutPage = () => {
 
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
-    if (!createForm.batch_id || !createForm.printing_session_id) {
-      setError('Заполните все требуемые поля');
+    if (!createForm.printing_session_id) {
+      setError('Выберите партию печати');
       return;
     }
 
@@ -194,9 +194,9 @@ const DieCutPage = () => {
   return (
     <div style={{ width: '100%' }}>
       <div className="flex-between mb-4">
-        <h1 style={{ marginTop: 0 }}>Вырубка</h1>
+        <h1 style={{ marginTop: 0 }}>Партии вырубки</h1>
         <button className="btn btn-primary" onClick={handleCreateClick}>
-          <Plus size={20} /> Создать сеанс вырубки
+          <Plus size={20} /> Создать партию вырубки
         </button>
       </div>
 
@@ -240,7 +240,7 @@ const DieCutPage = () => {
       {activeSessions.length > 0 && (
         <div className="card mb-4" style={{ borderLeft: '4px solid #f59e0b' }}>
           <div className="card-header">
-            <h4>Активные сеансы</h4>
+            <h4>Активные партии</h4>
           </div>
           <div className="card-body">
             <div className="grid grid-2 gap-3">
@@ -382,7 +382,7 @@ const DieCutPage = () => {
         <div className="card">
           <div className="card-body" style={{ textAlign: 'center', padding: '2rem' }}>
             <Scissors size={48} style={{ color: '#cbd5e1', marginBottom: '1rem' }} />
-            <p className="text-muted">Нет сеансов вырубки</p>
+            <p className="text-muted">Нет партий вырубки. Нажмите «Создать партию вырубки»</p>
           </div>
         </div>
       )}
@@ -391,26 +391,10 @@ const DieCutPage = () => {
       {showCreateModal && (
         <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2>Создать сеанс вырубки</h2>
+            <h2>Создать партию вырубки</h2>
             <form onSubmit={handleCreateSubmit}>
               <div className="form-group">
-                <label>Партия</label>
-                <select
-                  value={createForm.batch_id}
-                  onChange={(e) => setCreateForm({ ...createForm, batch_id: e.target.value })}
-                  required
-                >
-                  <option value="">-- Выберите партию --</option>
-                  {availableBatches.map((batch) => (
-                    <option key={batch.id} value={batch.id}>
-                      {batch.batch_number}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Сеанс печати</label>
+                <label>Партия печати <span style={{ color: '#9ca3af', fontWeight: 400 }}>(обязательно)</span></label>
                 <select
                   value={createForm.printing_session_id}
                   onChange={(e) => {
@@ -423,10 +407,25 @@ const DieCutPage = () => {
                   }}
                   required
                 >
-                  <option value="">-- Выберите сеанс печати --</option>
+                  <option value="">-- Выберите партию печати --</option>
                   {availablePrintingSessions.map((session) => (
                     <option key={session.id} value={session.id}>
-                      {session.session_number} (Партия {session.batch_number})
+                      {session.session_number}{session.batch_number ? ` (Партия ${session.batch_number})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Производственная партия <span style={{ color: '#9ca3af', fontWeight: 400 }}>(необязательно)</span></label>
+                <select
+                  value={createForm.batch_id}
+                  onChange={(e) => setCreateForm({ ...createForm, batch_id: e.target.value })}
+                >
+                  <option value="">-- Не привязывать --</option>
+                  {availableBatches.map((batch) => (
+                    <option key={batch.id} value={batch.id}>
+                      {batch.batch_number} — {batch.product_name}
                     </option>
                   ))}
                 </select>
@@ -439,7 +438,6 @@ const DieCutPage = () => {
                   value={createForm.press_model}
                   onChange={(e) => setCreateForm({ ...createForm, press_model: e.target.value })}
                   placeholder="Модель пресса"
-                  required
                 />
               </div>
 
@@ -450,7 +448,6 @@ const DieCutPage = () => {
                   value={createForm.press_serial}
                   onChange={(e) => setCreateForm({ ...createForm, press_serial: e.target.value })}
                   placeholder="Серийный номер"
-                  required
                 />
               </div>
 
@@ -461,18 +458,16 @@ const DieCutPage = () => {
                   value={createForm.sheets_planned}
                   onChange={(e) => setCreateForm({ ...createForm, sheets_planned: e.target.value })}
                   min="1"
-                  required
                 />
               </div>
 
               <div className="form-group">
-                <label>Плановое кол-во</label>
+                <label>Плановое количество заготовок (шт.)</label>
                 <input
                   type="number"
                   value={createForm.quantity_planned}
                   onChange={(e) => setCreateForm({ ...createForm, quantity_planned: e.target.value })}
                   min="1"
-                  required
                 />
               </div>
 
@@ -497,10 +492,10 @@ const DieCutPage = () => {
       {showCompleteModal && (
         <div className="modal-overlay" onClick={() => setShowCompleteModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2>Завершить сеанс вырубки</h2>
+            <h2>Завершить партию вырубки</h2>
             {activeSession && (
               <p style={{ color: '#2563eb', fontWeight: 600, marginBottom: '1.5rem' }}>
-                Сеанс: {activeSession.session_number}
+                Партия: {activeSession.session_number}
               </p>
             )}
             <form onSubmit={handleCompleteSubmit}>

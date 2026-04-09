@@ -87,12 +87,8 @@ const InkPage = () => {
 
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
-    if (!createForm.batch_id) {
-      setError('Выберите партию');
-      return;
-    }
     if (!createForm.product_name.trim()) {
-      setError('Введите название продукта');
+      setError('Введите наименование краски');
       return;
     }
     if (createForm.components.length === 0 || !createForm.components[0].name.trim()) {
@@ -358,30 +354,30 @@ const InkPage = () => {
             <h2>Создать партию краски</h2>
             <form onSubmit={handleCreateSubmit}>
               <div className="form-group">
-                <label>Выберите партию</label>
+                <label>Наименование краски</label>
+                <input
+                  type="text"
+                  value={createForm.product_name}
+                  onChange={(e) => setCreateForm({ ...createForm, product_name: e.target.value })}
+                  required
+                  placeholder="Например: Чёрная CMYK, Пантон 485..."
+                  autoFocus
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Производственная партия <span style={{ color: '#9ca3af', fontWeight: 400 }}>(необязательно)</span></label>
                 <select
                   value={createForm.batch_id}
                   onChange={(e) => setCreateForm({ ...createForm, batch_id: e.target.value })}
-                  required
                 >
-                  <option value="">-- Выберите партию --</option>
+                  <option value="">-- Не привязывать к партии --</option>
                   {availableBatches.map((batch) => (
                     <option key={batch.id} value={batch.id}>
                       {batch.batch_number}
                     </option>
                   ))}
                 </select>
-              </div>
-
-              <div className="form-group">
-                <label>Название продукта</label>
-                <input
-                  type="text"
-                  value={createForm.product_name}
-                  onChange={(e) => setCreateForm({ ...createForm, product_name: e.target.value })}
-                  required
-                  placeholder="Название продукта"
-                />
               </div>
 
               <div style={{ marginBottom: '1.5rem' }}>

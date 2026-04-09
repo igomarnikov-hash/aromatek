@@ -14,7 +14,7 @@ import {
   Layers,
   Grid2X2,
   Palette,
-  Printer,
+  Frame,
   Scissors,
   ChevronDown,
   ChevronUp
@@ -45,7 +45,7 @@ const Sidebar = ({ collapsed, onToggle, userRole, onLinkClick }) => {
     { label: 'Партии',     icon: Layers,      path: '/batches',   roles: ['admin','production_manager','operator','technologist'] },
     { label: 'Сетки',      icon: Grid2X2,     path: '/screens',   roles: ['admin','production_manager','operator'] },
     { label: 'Краска',     icon: Palette,     path: '/ink',       roles: ['admin','production_manager','operator','technologist'] },
-    { label: 'Печать',     icon: Printer,     path: '/printing',  roles: ['admin','production_manager','operator'] },
+    { label: 'Печать',     icon: Frame,       path: '/printing',  roles: ['admin','production_manager','operator'] },
     { label: 'Вырубка',    icon: Scissors,    path: '/diecut',    roles: ['admin','production_manager','operator'] },
   ];
 
