@@ -12,6 +12,13 @@ import SettingsPage from './pages/SettingsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import ChecklistPage from './pages/ChecklistPage';
 
+// Production modules
+import BatchesPage  from './pages/BatchesPage';
+import ScreensPage  from './pages/ScreensPage';
+import InkPage      from './pages/InkPage';
+import PrintingPage from './pages/PrintingPage';
+import DieCutPage   from './pages/DieCutPage';
+
 const ProtectedRoutes = () => {
   const { user, loading } = useAuth();
 
@@ -37,14 +44,24 @@ const ProtectedRoutes = () => {
   return (
     <Layout>
       <Routes>
-        <Route path="/" element={<DashboardPage />} />
-        <Route path="/materials" element={<MaterialsPage />} />
-        <Route path="/techcards" element={<TechCardsPage />} />
-        <Route path="/tasks" element={<TasksPage />} />
-        <Route path="/workshop" element={<WorkshopPage />} />
-        <Route path="/analytics" element={<AnalyticsPage />} />
-        <Route path="/checklist" element={<ChecklistPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
+        {/* Existing routes */}
+        <Route path="/"           element={<DashboardPage />} />
+        <Route path="/materials"  element={<MaterialsPage />} />
+        <Route path="/techcards"  element={<TechCardsPage />} />
+        <Route path="/tasks"      element={<TasksPage />} />
+        <Route path="/workshop"   element={<WorkshopPage />} />
+        <Route path="/analytics"  element={<AnalyticsPage />} />
+        <Route path="/checklist"  element={<ChecklistPage />} />
+        <Route path="/settings"   element={<SettingsPage />} />
+
+        {/* Production module routes */}
+        <Route path="/batches"    element={<BatchesPage />} />
+        <Route path="/batches/:id" element={<BatchesPage />} />
+        <Route path="/screens"    element={<ScreensPage />} />
+        <Route path="/ink"        element={<InkPage />} />
+        <Route path="/printing"   element={<PrintingPage />} />
+        <Route path="/diecut"     element={<DieCutPage />} />
+
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>

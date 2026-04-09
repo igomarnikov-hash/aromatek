@@ -29,6 +29,15 @@ async function startServer() {
     const analyticsRoutes = require('./routes/analytics')(db);
     const checklistRoutes = require('./routes/checklist')(db);
 
+    // Production modules
+    const batchesRoutes    = require('./routes/batches')(db);
+    const screensRoutes    = require('./routes/screens')(db);
+    const inkRoutes        = require('./routes/ink')(db);
+    const printingRoutes   = require('./routes/printing')(db);
+    const diecutRoutes     = require('./routes/diecut')(db);
+    const perfumeRoutes    = require('./routes/perfume')(db);
+    const packagingRoutes  = require('./routes/packaging')(db);
+
     // Serve uploaded photos as static files
     app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -41,6 +50,15 @@ async function startServer() {
     app.use('/api', exportRoutes);
     app.use('/api', analyticsRoutes);
     app.use('/api', checklistRoutes);
+
+    // Production modules
+    app.use('/api', batchesRoutes);
+    app.use('/api', screensRoutes);
+    app.use('/api', inkRoutes);
+    app.use('/api', printingRoutes);
+    app.use('/api', diecutRoutes);
+    app.use('/api', perfumeRoutes);
+    app.use('/api', packagingRoutes);
 
     // Health check endpoint
     app.get('/api/health', (req, res) => {

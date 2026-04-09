@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { Plus, Play, CheckCircle, AlertCircle, Download } from 'lucide-react';
+import { Plus, Play, CheckCircle, AlertCircle, Download, Layers } from 'lucide-react';
 import api from '../api';
 import { AuthContext } from '../context/AuthContext';
 
@@ -112,6 +112,44 @@ const TasksPage = () => {
       loadData();
     } catch (err) {
       setError(err.message || 'Ошибка при регистрации дефекта');
+    }
+  };
+
+  // ── Create batch from task ──
+  const [showBatchModal, setShowBatchModal] = useState(false);
+  const [batchFromTask, setBatchFromTask] = useState(null);
+  const [batchForm, setBatchForm] = useState({ productName: '', plannedQuantity: '', notes: '' });
+  const [creatingBatch, setCreatingBatch] = useState(false);
+
+  const openBatchModal = (task) => {
+    setBatchFromTask(task);
+    setBatchForm({
+      productName: task.tech_card_name || '',
+      plannedQuantity: task.quantity_planned || 1890,
+      notes: ''
+    });
+    setShowBatchModal(true);
+  };
+
+  const handleCreateBatchFromTask = async (e) => {
+    e.preventDefault();
+    setCreatingBatch(true);
+    try {
+      await api.post('/batches', {
+        productName: batchForm.productName,
+        plannedQuantity: Number(batchForm.plannedQuantity),
+        notes: batchForm.notes,
+        userId: user?.id
+      });
+      setShowBatchModal(false);
+      setBatchFromTask(null);
+      setError('');
+      // Show success notice
+      alert(`Партия создана: ${batchForm.productName}`);
+    } catch (err) {
+      setError(err.message || 'Ошибка при создании партии');
+    } finally {
+      setCreatingBatch(false);
     }
   };
 
@@ -313,6 +351,16 @@ const TasksPage = () => {
                 {task.status === 'completed' && (
                   <span className="badge badge-success">Завершено</span>
                 )}
+
+                {/* Create batch from task — available for all statuses */}
+                <button
+                  className="btn btn-sm btn-outline"
+                  onClick={() => openBatchModal(task)}
+                  style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '4px' }}
+                  title="Создать партию производства из этой задачи"
+                >
+                  <Layers size={14} /> Партию
+                </button>
               </div>
             </div>
           );
@@ -323,6 +371,61 @@ const TasksPage = () => {
         <div className="card">
           <div className="card-body" style={{ textAlign: 'center', padding: '2rem' }}>
             <p className="text-muted">Нет задач</p>
+          </div>
+        </div>
+      )}
+
+      {/* Create batch from task modal */}
+      {showBatchModal && batchFromTask && (
+        <div className="modal-overlay" onClick={() => setShowBatchModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px' }}>
+            <h2 style={{ marginTop: 0 }}>Создать партию из задачи</h2>
+            <p style={{ color: '#94a3b8', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
+              На основе: <strong>{batchFromTask.tech_card_name}</strong>
+            </p>
+            <form onSubmit={handleCreateBatchFromTask}>
+              <div className="form-group">
+                <label>Название продукта *</label>
+                <input
+                  type="text"
+                  required
+                  value={batchForm.productName}
+                  onChange={(e) => setBatchForm({ ...batchForm, productName: e.target.value })}
+                  placeholder="Введите название"
+                  style={{ marginTop: '0.5rem' }}
+                />
+              </div>
+              <div className="form-group">
+                <label>Плановое количество (шт.) *</label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  value={batchForm.plannedQuantity}
+                  onChange={(e) => setBatchForm({ ...batchForm, plannedQuantity: e.target.value })}
+                  style={{ marginTop: '0.5rem' }}
+                />
+              </div>
+              <div className="form-group">
+                <label>Примечания</label>
+                <textarea
+                  value={batchForm.notes}
+                  onChange={(e) => setBatchForm({ ...batchForm, notes: e.target.value })}
+                  placeholder="Дополнительная информация"
+                  rows="2"
+                  style={{ marginTop: '0.5rem' }}
+                ></textarea>
+              </div>
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
+                <button type="submit" className="btn btn-primary" disabled={creatingBatch}>
+                  <Layers size={16} />
+                  {creatingBatch ? 'Создание...' : 'Создать партию'}
+                </button>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowBatchModal(false)}>
+                  Отмена
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
