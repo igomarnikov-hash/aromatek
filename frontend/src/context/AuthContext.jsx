@@ -1,70 +1,78 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import api from '../api';
+import { createContext, useContext, useState, useEffect } from 'react'
+import api from '../api'
 
-export const AuthContext = createContext();
+const AuthContext = createContext(null)
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [users, setUsers] = useState([]);
+const DEMO_USERS = [
+  { id: 1, name: 'Александр Петров', role: 'admin', avatar_color: '#2563eb' },
+  { id: 2, name: 'Мария Сидорова', role: 'technologist', avatar_color: '#7c3aed' },
+  { id: 3, name: 'Иван Иванов', role: 'production_manager', avatar_color: '#0891b2' },
+  { id: 4, name: 'Елена Федорова', role: 'warehouse', avatar_color: '#d97706' },
+  { id: 5, name: 'Николай Сергеев', role: 'operator', avatar_color: '#16a34a' },
+]
+
+const ROLE_LABELS = {
+  admin: 'Администратор',
+  technologist: 'Технолог',
+  production_manager: 'Нач. производства',
+  warehouse: 'Кладовщик',
+  operator: 'Оператор',
+}
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null)
+  const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const savedUser = sessionStorage.getItem('currentUser');
-    if (savedUser) {
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch (e) {
-        console.error('Ошибка при загрузке пользователя:', e);
+    const saved = sessionStorage.getItem('currentUser')
+    if (saved) {
+      try { setUser(JSON.parse(saved)) } catch {}
+    }
+    fetchUsers()
+    setLoading(false)
+  }, [])
+
+  async function fetchUsers() {
+    try {
+      const data = await api.get('/users')
+      setUsers(data.data || DEMO_USERS)
+    } catch {
+      setUsers(DEMO_USERS)
+    }
+  }
+
+  async function login(userId) {
+    try {
+      const data = await api.post('/auth/login', { user_id: userId })
+      const loggedUser = { ...data.data, roleLabel: ROLE_LABELS[data.data.role] }
+      setUser(loggedUser)
+      sessionStorage.setItem('currentUser', JSON.stringify(loggedUser))
+      return loggedUser
+    } catch {
+      const demoUser = DEMO_USERS.find(u => u.id === userId)
+      if (demoUser) {
+        const loggedUser = { ...demoUser, roleLabel: ROLE_LABELS[demoUser.role] }
+        setUser(loggedUser)
+        sessionStorage.setItem('currentUser', JSON.stringify(loggedUser))
+        return loggedUser
       }
+      throw new Error('Пользователь не найден')
     }
-    setLoading(false);
-  }, []);
+  }
 
-  const fetchUsers = async () => {
-    try {
-      const response = await api.get('/users');
-      const userList = Array.isArray(response) ? response : response.data || [];
-      setUsers(userList);
-      return userList;
-    } catch (error) {
-      console.error('Ошибка при загрузке списка пользователей:', error);
-      return [];
-    }
-  };
-
-  const login = async (userId) => {
-    try {
-      setLoading(true);
-      const response = await api.post('/auth/login', { userId });
-      const userData = response.data || response.user || response;
-
-      setUser(userData);
-      sessionStorage.setItem('currentUser', JSON.stringify(userData));
-      return userData;
-    } catch (error) {
-      console.error('Ошибка при входе:', error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const logout = () => {
-    setUser(null);
-    sessionStorage.removeItem('currentUser');
-  };
+  function logout() {
+    setUser(null)
+    sessionStorage.removeItem('currentUser')
+  }
 
   return (
-    <AuthContext.Provider value={{ user, loading, users, fetchUsers, login, logout }}>
+    <AuthContext.Provider value={{ user, users, loading, login, logout, ROLE_LABELS }}>
       {children}
     </AuthContext.Provider>
-  );
-};
+  )
+}
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth должен быть использован внутри AuthProvider');
-  }
-  return context;
-};
+export function useAuth() {
+  return useContext(AuthContext)
+}

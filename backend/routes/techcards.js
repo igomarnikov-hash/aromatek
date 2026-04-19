@@ -1,247 +1,72 @@
-const express = require('express');
+const express = require('express')
+const router = express.Router()
+const { db } = require('../database')
 
-module.exports = function(db) {
-  const router = express.Router();
+function getCardWithItems(id) {
+  const card = db.prepare('SELECT * FROM tech_cards WHERE id = ?').get(id)
+  if (!card) return null
+  const items = db.prepare(`
+    SELECT tci.*, m.name as material_name, m.unit 
+    FROM tech_card_items tci 
+    JOIN materials m ON tci.material_id = m.id 
+    WHERE tci.tech_card_id = ?
+  `).all(id)
+  return { ...card, items, steps: JSON.parse(card.steps || '[]') }
+}
 
-  // GET all tech cards with items populated
-  router.get('/techcards', (req, res) => {
-    try {
-      const techCards = db.prepare(`
-        SELECT id, name, description, version, is_active, created_at, updated_at
-        FROM tech_cards
-        ORDER BY name
-      `).all();
-
-      // Populate items for each tech card
-      const techCardsWithItems = techCards.map(card => {
-        const items = db.prepare(`
-          SELECT
-            tci.id,
-            tci.tech_card_id,
-            tci.material_id,
-            tci.quantity_per_unit,
-            m.name as material_name,
-            m.category,
-            m.unit
-          FROM tech_card_items tci
-          JOIN materials m ON tci.material_id = m.id
-          WHERE tci.tech_card_id = ?
-        `).all(card.id);
-
-        return {
-          ...card,
-          items: items
-        };
-      });
-
-      res.json({
-        success: true,
-        data: techCardsWithItems
-      });
-    } catch (error) {
-      console.error('Error fetching tech cards:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Ошибка при получении технологических карт'
-      });
-    }
-  });
-
-  // GET single tech card with items and material names
-  router.get('/techcards/:id', (req, res) => {
-    try {
-      const { id } = req.params;
-      const techCard = db.prepare(`
-        SELECT id, name, description, version, is_active, created_at, updated_at
-        FROM tech_cards
-        WHERE id = ?
-      `).get(id);
-
-      if (!techCard) {
-        return res.status(404).json({
-          success: false,
-          error: 'Технологическая карта не найдена'
-        });
-      }
-
+router.get('/techcards', (req, res) => {
+  try {
+    const cards = db.prepare('SELECT * FROM tech_cards ORDER BY name').all()
+    const result = cards.map(c => {
       const items = db.prepare(`
-        SELECT
-          tci.id,
-          tci.tech_card_id,
-          tci.material_id,
-          tci.quantity_per_unit,
-          m.name as material_name,
-          m.category,
-          m.unit,
-          m.quantity as material_quantity
-        FROM tech_card_items tci
-        JOIN materials m ON tci.material_id = m.id
+        SELECT tci.*, m.name as material_name, m.unit 
+        FROM tech_card_items tci 
+        JOIN materials m ON tci.material_id = m.id 
         WHERE tci.tech_card_id = ?
-      `).all(id);
+      `).all(c.id)
+      return { ...c, items, steps: JSON.parse(c.steps || '[]') }
+    })
+    res.json({ success: true, data: result })
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message })
+  }
+})
 
-      res.json({
-        success: true,
-        data: {
-          ...techCard,
-          items: items
-        }
-      });
-    } catch (error) {
-      console.error('Error fetching tech card:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Ошибка при получении технологической карты'
-      });
+router.get('/techcards/:id', (req, res) => {
+  try {
+    const card = getCardWithItems(req.params.id)
+    if (!card) return res.status(404).json({ success: false, error: 'Тех. карта не найдена' })
+    res.json({ success: true, data: card })
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message })
+  }
+})
+
+router.post('/techcards', (req, res) => {
+  try {
+    const { name, description, version, duration_minutes, steps, items } = req.body
+    if (!name) return res.status(400).json({ success: false, error: 'Название обязательно' })
+    const r = db.prepare('INSERT INTO tech_cards (name, description, version, duration_minutes, steps) VALUES (?, ?, ?, ?, ?)').run(name, description || '', version || '1.0', duration_minutes || 60, JSON.stringify(steps || []))
+    if (items && items.length > 0) {
+      const ins = db.prepare('INSERT INTO tech_card_items (tech_card_id, material_id, quantity_per_unit) VALUES (?, ?, ?)')
+      items.forEach(item => ins.run(r.lastInsertRowid, item.material_id, item.quantity_per_unit))
     }
-  });
+    res.status(201).json({ success: true, data: getCardWithItems(r.lastInsertRowid) })
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message })
+  }
+})
 
-  // POST create new tech card with items
-  router.post('/techcards', (req, res) => {
-    try {
-      const { name, description, version, items } = req.body;
+router.put('/techcards/:id', (req, res) => {
+  try {
+    const { name, description, version, duration_minutes, steps, is_active } = req.body
+    const card = db.prepare('SELECT * FROM tech_cards WHERE id = ?').get(req.params.id)
+    if (!card) return res.status(404).json({ success: false, error: 'Тех. карта не найдена' })
+    db.prepare('UPDATE tech_cards SET name=?, description=?, version=?, duration_minutes=?, steps=?, is_active=?, updated_at=CURRENT_TIMESTAMP WHERE id=?').run(name||card.name, description??card.description, version||card.version, duration_minutes||card.duration_minutes, JSON.stringify(steps||JSON.parse(card.steps||'[]')), is_active??card.is_active, req.params.id)
+    res.json({ success: true, data: getCardWithItems(req.params.id) })
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message })
+  }
+})
 
-      if (!name || !version) {
-        return res.status(400).json({
-          success: false,
-          error: 'Название и версия обязательны'
-        });
-      }
-
-      const result = db.prepare(`
-        INSERT INTO tech_cards (name, description, version, is_active)
-        VALUES (?, ?, ?, 1)
-      `).run(name, description || null, version);
-
-      const techCardId = result.lastInsertRowid;
-
-      // Add items if provided
-      if (items && Array.isArray(items)) {
-        const insertItem = db.prepare(`
-          INSERT INTO tech_card_items (tech_card_id, material_id, quantity_per_unit)
-          VALUES (?, ?, ?)
-        `);
-
-        items.forEach(item => {
-          insertItem.run(techCardId, item.materialId, item.quantityPerUnit);
-        });
-      }
-
-      // Fetch the complete card with items
-      const techCard = db.prepare(`
-        SELECT id, name, description, version, is_active, created_at, updated_at
-        FROM tech_cards
-        WHERE id = ?
-      `).get(techCardId);
-
-      const techCardItems = db.prepare(`
-        SELECT
-          tci.id,
-          tci.tech_card_id,
-          tci.material_id,
-          tci.quantity_per_unit,
-          m.name as material_name,
-          m.category,
-          m.unit
-        FROM tech_card_items tci
-        JOIN materials m ON tci.material_id = m.id
-        WHERE tci.tech_card_id = ?
-      `).all(techCardId);
-
-      res.status(201).json({
-        success: true,
-        data: {
-          ...techCard,
-          items: techCardItems
-        }
-      });
-    } catch (error) {
-      console.error('Error creating tech card:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Ошибка при создании технологической карты'
-      });
-    }
-  });
-
-  // PUT update tech card
-  router.put('/techcards/:id', (req, res) => {
-    try {
-      const { id } = req.params;
-      const { name, description, version, isActive, items } = req.body;
-
-      const techCard = db.prepare('SELECT * FROM tech_cards WHERE id = ?').get(id);
-      if (!techCard) {
-        return res.status(404).json({
-          success: false,
-          error: 'Технологическая карта не найдена'
-        });
-      }
-
-      // Update main fields
-      db.prepare(`
-        UPDATE tech_cards
-        SET name = ?, description = ?, version = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-      `).run(
-        name || techCard.name,
-        description !== undefined ? description : techCard.description,
-        version || techCard.version,
-        isActive !== undefined ? isActive : techCard.is_active,
-        id
-      );
-
-      // Update items if provided
-      if (items && Array.isArray(items)) {
-        // Delete existing items
-        db.prepare('DELETE FROM tech_card_items WHERE tech_card_id = ?').run(id);
-
-        // Insert new items
-        const insertItem = db.prepare(`
-          INSERT INTO tech_card_items (tech_card_id, material_id, quantity_per_unit)
-          VALUES (?, ?, ?)
-        `);
-
-        items.forEach(item => {
-          insertItem.run(id, item.materialId, item.quantityPerUnit);
-        });
-      }
-
-      // Fetch updated card
-      const updated = db.prepare(`
-        SELECT id, name, description, version, is_active, created_at, updated_at
-        FROM tech_cards
-        WHERE id = ?
-      `).get(id);
-
-      const updatedItems = db.prepare(`
-        SELECT
-          tci.id,
-          tci.tech_card_id,
-          tci.material_id,
-          tci.quantity_per_unit,
-          m.name as material_name,
-          m.category,
-          m.unit
-        FROM tech_card_items tci
-        JOIN materials m ON tci.material_id = m.id
-        WHERE tci.tech_card_id = ?
-      `).all(id);
-
-      res.json({
-        success: true,
-        data: {
-          ...updated,
-          items: updatedItems
-        }
-      });
-    } catch (error) {
-      console.error('Error updating tech card:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Ошибка при обновлении технологической карты'
-      });
-    }
-  });
-
-  return router;
-};
+module.exports = router

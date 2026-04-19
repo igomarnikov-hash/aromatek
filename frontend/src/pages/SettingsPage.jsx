@@ -1,381 +1,205 @@
-import React, { useState } from 'react';
-import { Users, Bell, Shield, Save } from 'lucide-react';
+import { useState } from 'react'
+import { Save, Building, Users, Bell, Shield } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 
-const SettingsPage = () => {
-  const [activeTab, setActiveTab] = useState('general');
-  const [settings, setSettings] = useState({
-    companyName: 'АромаТек',
-    companyAddress: 'г. Москва, ул. Примерная, д. 123',
-    companyPhone: '+7 (999) 123-45-67',
-    companyEmail: 'info@aromatek.ru',
-    workingHours: '08:00-17:00',
+const ROLE_LABELS = { admin: 'Администратор', technologist: 'Технолог', production_manager: 'Нач. производства', warehouse: 'Кладовщик', operator: 'Оператор' }
+
+const DEMO_USERS = [
+  { id: 1, name: 'Александр Петров', role: 'admin', avatar_color: '#2563eb' },
+  { id: 2, name: 'Мария Сидорова', role: 'technologist', avatar_color: '#7c3aed' },
+  { id: 3, name: 'Иван Иванов', role: 'production_manager', avatar_color: '#0891b2' },
+  { id: 4, name: 'Елена Федорова', role: 'warehouse', avatar_color: '#d97706' },
+  { id: 5, name: 'Николай Сергеев', role: 'operator', avatar_color: '#16a34a' },
+]
+
+export default function SettingsPage() {
+  const { user, users } = useAuth()
+  const [tab, setTab] = useState('general')
+  const [success, setSuccess] = useState('')
+  const [general, setGeneral] = useState({
+    company: 'АромаПро',
+    address: 'г. Москва, ул. Производственная, 15',
+    phone: '+7 (495) 123-45-67',
+    email: 'info@aromapro.ru',
+    work_hours: '08:00 - 20:00',
     timezone: 'Europe/Moscow',
-    enableNotifications: true,
-    notificationEmail: true,
-    notificationPush: true,
-    alertCritical: true,
-    alertWarning: true,
-    alertInfo: true,
-    dataBackup: 'weekly'
-  });
+  })
+  const [notifications, setNotifications] = useState({
+    system: true, email: true, push: false,
+    critical: true, warning: true, info: false,
+  })
 
-  const [saved, setSaved] = useState(false);
+  const displayUsers = (users && users.length > 0) ? users : DEMO_USERS
 
-  const handleSave = () => {
-    // Mock save
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  };
+  function showMsg() { setSuccess('Настройки сохранены'); setTimeout(() => setSuccess(''), 3000) }
+
+  function getInitials(name) {
+    return name?.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2) || '??'
+  }
+
+  const TABS = [
+    { id: 'general', label: 'Общие', icon: Building },
+    { id: 'users', label: 'Пользователи', icon: Users },
+    { id: 'notifications', label: 'Уведомления', icon: Bell },
+    { id: 'security', label: 'Безопасность', icon: Shield },
+  ]
 
   return (
-    <div style={{ width: '100%' }}>
-      <h1 style={{ marginTop: 0 }}>Настройки системы</h1>
+    <div className="page">
+      <div className="page-header">
+        <h1 className="page-title">Настройки</h1>
+      </div>
 
-      {saved && (
-        <div className="alert alert-success" style={{ marginBottom: '1.5rem' }}>
-          <span>✓ Настройки сохранены успешно</span>
-        </div>
-      )}
+      {success && <div className="alert alert-success mb-3">{success}</div>}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: '2rem' }}>
-        {/* Tabs */}
-        <div>
-          <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {[
-              { id: 'general', label: 'Основные', icon: 'ℹ️' },
-              { id: 'users', label: 'Пользователи', icon: '👥' },
-              { id: 'notifications', label: 'Уведомления', icon: '🔔' },
-              { id: 'security', label: 'Безопасность', icon: '🔒' }
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                style={{
-                  padding: '10px 12px',
-                  textAlign: 'left',
-                  background: activeTab === tab.id ? '#2563eb' : 'transparent',
-                  border: 'none',
-                  borderRadius: '0.375rem',
-                  color: activeTab === tab.id ? 'white' : '#334155',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  fontWeight: activeTab === tab.id ? 600 : 400
-                }}
-              >
-                {tab.icon} {tab.label}
-              </button>
-            ))}
-          </nav>
+      <div className="settings-layout">
+        <div className="settings-tabs">
+          {TABS.map(t => (
+            <button key={t.id} className={`settings-tab ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>
+              <t.icon size={18} />
+              <span>{t.label}</span>
+            </button>
+          ))}
         </div>
 
-        {/* Content */}
-        <div>
-          {/* General Settings */}
-          {activeTab === 'general' && (
+        <div className="settings-content">
+          {tab === 'general' && (
             <div className="card">
-              <div className="card-header">
-                <h4>Основные параметры</h4>
-              </div>
-
+              <div className="card-header"><h3>Общие настройки</h3></div>
               <div className="card-body">
-                <div className="grid grid-2 gap-3">
+                <div className="form-grid">
                   <div className="form-group">
                     <label>Название компании</label>
-                    <input
-                      type="text"
-                      value={settings.companyName}
-                      onChange={(e) => setSettings({ ...settings, companyName: e.target.value })}
-                    />
+                    <input className="form-input" value={general.company} onChange={e => setGeneral({...general, company: e.target.value})} />
                   </div>
-
-                  <div className="form-group">
-                    <label>Телефон</label>
-                    <input
-                      type="tel"
-                      value={settings.companyPhone}
-                      onChange={(e) => setSettings({ ...settings, companyPhone: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label>Адрес</label>
-                    <input
-                      type="text"
-                      value={settings.companyAddress}
-                      onChange={(e) => setSettings({ ...settings, companyAddress: e.target.value })}
-                    />
-                  </div>
-
                   <div className="form-group">
                     <label>Email</label>
-                    <input
-                      type="email"
-                      value={settings.companyEmail}
-                      onChange={(e) => setSettings({ ...settings, companyEmail: e.target.value })}
-                    />
+                    <input className="form-input" type="email" value={general.email} onChange={e => setGeneral({...general, email: e.target.value})} />
                   </div>
-
+                  <div className="form-group" style={{gridColumn:'1/-1'}}>
+                    <label>Адрес</label>
+                    <input className="form-input" value={general.address} onChange={e => setGeneral({...general, address: e.target.value})} />
+                  </div>
                   <div className="form-group">
-                    <label>Рабочее время</label>
-                    <input
-                      type="text"
-                      value={settings.workingHours}
-                      onChange={(e) => setSettings({ ...settings, workingHours: e.target.value })}
-                      placeholder="08:00-17:00"
-                    />
+                    <label>Телефон</label>
+                    <input className="form-input" value={general.phone} onChange={e => setGeneral({...general, phone: e.target.value})} />
                   </div>
-
+                  <div className="form-group">
+                    <label>Рабочие часы</label>
+                    <input className="form-input" value={general.work_hours} onChange={e => setGeneral({...general, work_hours: e.target.value})} />
+                  </div>
                   <div className="form-group">
                     <label>Часовой пояс</label>
-                    <select
-                      value={settings.timezone}
-                      onChange={(e) => setSettings({ ...settings, timezone: e.target.value })}
-                    >
-                      <option value="Europe/Moscow">Europe/Moscow (МСК)</option>
-                      <option value="Europe/London">Europe/London (GMT)</option>
-                      <option value="Europe/Berlin">Europe/Berlin (CET)</option>
-                      <option value="Asia/Yekaterinburg">Asia/Yekaterinburg (YEKT)</option>
-                      <option value="Asia/Novosibirsk">Asia/Novosibirsk (NOVT)</option>
+                    <select className="form-input" value={general.timezone} onChange={e => setGeneral({...general, timezone: e.target.value})}>
+                      <option value="Europe/Moscow">Москва (UTC+3)</option>
+                      <option value="Europe/Samara">Самара (UTC+4)</option>
+                      <option value="Asia/Yekaterinburg">Екатеринбург (UTC+5)</option>
                     </select>
                   </div>
                 </div>
-              </div>
-
-              <div className="card-footer">
-                <button className="btn btn-success" onClick={handleSave}>
-                  <Save size={18} />
-                  Сохранить
-                </button>
+                <button className="btn btn-primary mt-3" onClick={showMsg}><Save size={16} /> Сохранить</button>
               </div>
             </div>
           )}
 
-          {/* Users Management */}
-          {activeTab === 'users' && (
+          {tab === 'users' && (
             <div className="card">
-              <div className="card-header">
-                <h4>Управление пользователями</h4>
-              </div>
-
-              <div className="card-body">
-                <div className="table-wrapper">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Имя</th>
-                      <th>Роль</th>
-                      <th>Email</th>
-                      <th>Статус</th>
-                      <th>Действия</th>
-                    </tr>
-                  </thead>
+              <div className="card-header"><h3>Управление пользователями</h3></div>
+              <div className="card-body p-0">
+                <table className="table">
+                  <thead><tr><th>Пользователь</th><th>Роль</th><th>Статус</th></tr></thead>
                   <tbody>
-                    <tr>
-                      <td>Александр Петров</td>
-                      <td>Владелец</td>
-                      <td>alex@aromatek.ru</td>
-                      <td><span className="badge badge-success">Активный</span></td>
-                      <td>
-                        <button className="btn btn-sm btn-secondary">Редактировать</button>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Мария Сидорова</td>
-                      <td>Технолог</td>
-                      <td>maria@aromatek.ru</td>
-                      <td><span className="badge badge-success">Активный</span></td>
-                      <td>
-                        <button className="btn btn-sm btn-secondary">Редактировать</button>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Иван Иванов</td>
-                      <td>Нач. производства</td>
-                      <td>ivan@aromatek.ru</td>
-                      <td><span className="badge badge-success">Активный</span></td>
-                      <td>
-                        <button className="btn btn-sm btn-secondary">Редактировать</button>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Елена Федорова</td>
-                      <td>Кладовщик</td>
-                      <td>elena@aromatek.ru</td>
-                      <td><span className="badge badge-success">Активный</span></td>
-                      <td>
-                        <button className="btn btn-sm btn-secondary">Редактировать</button>
-                      </td>
-                    </tr>
+                    {displayUsers.map(u => (
+                      <tr key={u.id}>
+                        <td>
+                          <div className="flex-gap">
+                            <div className="avatar avatar-sm" style={{ backgroundColor: u.avatar_color }}>{getInitials(u.name)}</div>
+                            <span>{u.name}</span>
+                            {u.id === user?.id && <span className="badge badge-info">Вы</span>}
+                          </div>
+                        </td>
+                        <td><span className="badge badge-success">{ROLE_LABELS[u.role] || u.role}</span></td>
+                        <td><span className="badge badge-success">Активен</span></td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
-                </div>
               </div>
             </div>
           )}
 
-          {/* Notifications */}
-          {activeTab === 'notifications' && (
+          {tab === 'notifications' && (
             <div className="card">
-              <div className="card-header">
-                <h4>Параметры уведомлений</h4>
-              </div>
-
+              <div className="card-header"><h3>Настройки уведомлений</h3></div>
               <div className="card-body">
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <h5 style={{ marginBottom: '1rem' }}>Способы уведомлений</h5>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
-                      <input
-                        type="checkbox"
-                        checked={settings.enableNotifications}
-                        onChange={(e) => setSettings({ ...settings, enableNotifications: e.target.checked })}
-                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                      />
-                      <span>Включить уведомления в системе</span>
-                    </label>
-
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
-                      <input
-                        type="checkbox"
-                        checked={settings.notificationEmail}
-                        onChange={(e) => setSettings({ ...settings, notificationEmail: e.target.checked })}
-                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                      />
-                      <span>Email уведомления</span>
-                    </label>
-
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
-                      <input
-                        type="checkbox"
-                        checked={settings.notificationPush}
-                        onChange={(e) => setSettings({ ...settings, notificationPush: e.target.checked })}
-                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                      />
-                      <span>Push уведомления</span>
-                    </label>
-                  </div>
+                <div className="settings-section mb-4">
+                  <div className="settings-section-title">Каналы уведомлений</div>
+                  {[
+                    { key: 'system', label: 'Системные уведомления', desc: 'Уведомления внутри приложения' },
+                    { key: 'email', label: 'Email уведомления', desc: 'Отправка на email' },
+                    { key: 'push', label: 'Push уведомления', desc: 'Уведомления в браузере' },
+                  ].map(item => (
+                    <div key={item.key} className="toggle-row">
+                      <div>
+                        <div className="toggle-label">{item.label}</div>
+                        <div className="text-muted text-sm">{item.desc}</div>
+                      </div>
+                      <label className="toggle">
+                        <input type="checkbox" checked={notifications[item.key]} onChange={e => setNotifications({...notifications, [item.key]: e.target.checked})} />
+                        <span className="toggle-slider"></span>
+                      </label>
+                    </div>
+                  ))}
                 </div>
-
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <h5 style={{ marginBottom: '1rem' }}>Типы событий для уведомлений</h5>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
-                      <input
-                        type="checkbox"
-                        checked={settings.alertCritical}
-                        onChange={(e) => setSettings({ ...settings, alertCritical: e.target.checked })}
-                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                      />
-                      <span>Критические события (красные)</span>
-                    </label>
-
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
-                      <input
-                        type="checkbox"
-                        checked={settings.alertWarning}
-                        onChange={(e) => setSettings({ ...settings, alertWarning: e.target.checked })}
-                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                      />
-                      <span>Предупреждения (желтые)</span>
-                    </label>
-
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
-                      <input
-                        type="checkbox"
-                        checked={settings.alertInfo}
-                        onChange={(e) => setSettings({ ...settings, alertInfo: e.target.checked })}
-                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                      />
-                      <span>Информационные события (синие)</span>
-                    </label>
-                  </div>
+                <div className="settings-section">
+                  <div className="settings-section-title">Типы оповещений</div>
+                  {[
+                    { key: 'critical', label: 'Критические', desc: 'Нехватка материалов, аварии' },
+                    { key: 'warning', label: 'Предупреждения', desc: 'Низкий уровень запасов' },
+                    { key: 'info', label: 'Информационные', desc: 'Завершение задач, события' },
+                  ].map(item => (
+                    <div key={item.key} className="toggle-row">
+                      <div>
+                        <div className="toggle-label">{item.label}</div>
+                        <div className="text-muted text-sm">{item.desc}</div>
+                      </div>
+                      <label className="toggle">
+                        <input type="checkbox" checked={notifications[item.key]} onChange={e => setNotifications({...notifications, [item.key]: e.target.checked})} />
+                        <span className="toggle-slider"></span>
+                      </label>
+                    </div>
+                  ))}
                 </div>
-              </div>
-
-              <div className="card-footer">
-                <button className="btn btn-success" onClick={handleSave}>
-                  <Save size={18} />
-                  Сохранить
-                </button>
+                <button className="btn btn-primary mt-3" onClick={showMsg}><Save size={16} /> Сохранить</button>
               </div>
             </div>
           )}
 
-          {/* Security */}
-          {activeTab === 'security' && (
+          {tab === 'security' && (
             <div className="card">
-              <div className="card-header">
-                <h4>Параметры безопасности</h4>
-              </div>
-
+              <div className="card-header"><h3>Безопасность</h3></div>
               <div className="card-body">
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                    Резервное копирование
-                  </label>
-                  <select
-                    value={settings.dataBackup}
-                    onChange={(e) => setSettings({ ...settings, dataBackup: e.target.value })}
-                    style={{
-                      padding: '0.625rem 0.875rem',
-                      backgroundColor: '#ffffff',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '0.375rem',
-                      color: '#0f172a',
-                      width: '100%'
-                    }}
-                  >
-                    <option value="disabled">Отключено</option>
-                    <option value="daily">Ежедневно</option>
-                    <option value="weekly">Еженедельно</option>
-                    <option value="monthly">Ежемесячно</option>
+                <div className="security-info mb-4">
+                  <div className="flex-between mb-2"><span className="text-muted">Тип аутентификации:</span><span>Демо (без пароля)</span></div>
+                  <div className="flex-between mb-2"><span className="text-muted">Сессия:</span><span>Session Storage</span></div>
+                  <div className="flex-between mb-2"><span className="text-muted">База данных:</span><span>SQLite (локальная)</span></div>
+                  <div className="flex-between"><span className="text-muted">API:</span><span>Express.js REST API</span></div>
+                </div>
+                <div className="form-group mb-3">
+                  <label>Резервное копирование</label>
+                  <select className="form-input">
+                    <option>Ежедневно в 00:00</option>
+                    <option>Каждые 6 часов</option>
+                    <option>Еженедельно</option>
+                    <option>Вручную</option>
                   </select>
-                  <p className="text-muted text-sm" style={{ marginTop: '0.5rem' }}>
-                    Автоматическое резервное копирование базы данных
-                  </p>
                 </div>
-
-                <div style={{
-                  padding: '1rem',
-                  backgroundColor: '#f8fafc',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '0.5rem',
-                  marginBottom: '1.5rem'
-                }}>
-                  <h5 style={{ marginTop: 0, marginBottom: '0.75rem' }}>Информация о системе</h5>
-                  <p className="text-muted" style={{ margin: '0.5rem 0', fontSize: '0.875rem' }}>
-                    <strong>Версия:</strong> 1.0.0
-                  </p>
-                  <p className="text-muted" style={{ margin: '0.5rem 0', fontSize: '0.875rem' }}>
-                    <strong>Последнее обновление:</strong> 2024-03-20
-                  </p>
-                  <p className="text-muted" style={{ margin: '0.5rem 0', fontSize: '0.875rem' }}>
-                    <strong>Состояние:</strong> <span style={{ color: '#16a34a' }}>✓ Нормально</span>
-                  </p>
-                </div>
-
-                <div>
-                  <button className="btn btn-danger">Очистить кэш</button>
-                  <button className="btn btn-secondary" style={{ marginLeft: '0.75rem' }}>
-                    Экспортировать данные
-                  </button>
-                </div>
-              </div>
-
-              <div className="card-footer">
-                <button className="btn btn-success" onClick={handleSave}>
-                  <Save size={18} />
-                  Сохранить
-                </button>
+                <button className="btn btn-primary" onClick={showMsg}><Save size={16} /> Сохранить</button>
               </div>
             </div>
           )}
         </div>
       </div>
     </div>
-  );
-};
-
-export default SettingsPage;
+  )
+}

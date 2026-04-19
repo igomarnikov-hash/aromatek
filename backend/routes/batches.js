@@ -328,6 +328,19 @@ module.exports = function(db) {
         return res.status(400).json({ success: false, error: 'Операция уже запущена' });
       }
 
+      // Проверяем: нет ли другой активной операции в этой партии
+      const activeOp = db.prepare(`
+        SELECT id, stage FROM batch_operations
+        WHERE batch_id = ? AND id != ? AND op_status = 'in_progress'
+        LIMIT 1
+      `).get(id, opId);
+      if (activeOp) {
+        return res.status(400).json({
+          success: false,
+          error: `Нельзя запустить операцию — в этой партии уже выполняется операция (этап: ${activeOp.stage}). Завершите её перед запуском новой.`
+        });
+      }
+
       const now = new Date().toISOString();
       db.prepare(`
         UPDATE batch_operations SET started_at = ?, op_status = 'in_progress' WHERE id = ?

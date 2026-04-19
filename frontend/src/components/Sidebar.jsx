@@ -1,114 +1,98 @@
-import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom'
 import {
-  LayoutDashboard,
-  Warehouse,
-  BookOpen,
-  ClipboardList,
-  Wrench,
-  Settings,
-  BarChart2,
-  ClipboardCheck,
-  ChevronLeft,
-  ChevronRight,
-  Layers,
-  Grid2X2,
-  Palette,
-  Frame,
-  Scissors,
-  ChevronDown,
-  ChevronUp
-} from 'lucide-react';
-import { useState } from 'react';
-import Logo from './Logo';
+  LayoutDashboard, Package, FileText, ClipboardList, Wrench,
+  Settings, ChevronLeft, ChevronRight, Layers, Printer,
+  Droplets, Scissors, Package2, FlaskConical, CheckSquare,
+  BarChart2, Paintbrush
+} from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 
-const Sidebar = ({ collapsed, onToggle, userRole, onLinkClick }) => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [prodOpen, setProdOpen] = useState(true);
+const NAV_SECTIONS = [
+  {
+    label: 'Основное',
+    items: [
+      { path: '/dashboard',  label: 'Дашборд',    icon: LayoutDashboard, roles: ['admin','technologist','production_manager','warehouse','operator'] },
+      { path: '/materials',  label: 'Склад',       icon: Package,         roles: ['admin','warehouse','production_manager'] },
+      { path: '/techcards',  label: 'Тех. карты',  icon: FileText,        roles: ['admin','technologist','production_manager'] },
+      { path: '/tasks',      label: 'Задачи',      icon: ClipboardList,   roles: ['admin','production_manager','operator'] },
+      { path: '/workshop',   label: 'Цех',         icon: Wrench,          roles: ['admin','production_manager','operator'] },
+    ]
+  },
+  {
+    label: 'Производство',
+    items: [
+      { path: '/batches',    label: 'Партии',      icon: Layers,          roles: ['admin','production_manager','operator','technologist'] },
+      { path: '/printing',   label: 'Печать',      icon: Printer,         roles: ['admin','production_manager','operator'] },
+      { path: '/ink',        label: 'Краски',      icon: Paintbrush,      roles: ['admin','production_manager','operator'] },
+      { path: '/screens',    label: 'Трафареты',   icon: Layers,          roles: ['admin','production_manager','technologist'] },
+      { path: '/diecut',     label: 'Вырубка',     icon: Scissors,        roles: ['admin','production_manager','operator'] },
+      { path: '/perfume',    label: 'Парфюм',      icon: Droplets,        roles: ['admin','production_manager','operator','technologist'] },
+      { path: '/packaging',  label: 'Упаковка',    icon: Package2,        roles: ['admin','production_manager','operator'] },
+    ]
+  },
+  {
+    label: 'Контроль',
+    items: [
+      { path: '/checklist',  label: 'Чек-листы',   icon: CheckSquare,     roles: ['admin','production_manager','operator','technologist'] },
+      { path: '/analytics',  label: 'Аналитика',   icon: BarChart2,       roles: ['admin','production_manager','technologist'] },
+      { path: '/settings',   label: 'Настройки',   icon: Settings,        roles: ['admin'] },
+    ]
+  }
+]
 
-  const role = userRole || '';
+export default function Sidebar({ collapsed, onToggle }) {
+  const { user } = useAuth()
 
-  const mainItems = [
-    { label: 'Панель показателей', icon: LayoutDashboard, path: '/',          roles: ['all'] },
-    { label: 'Склад',              icon: Warehouse,        path: '/materials', roles: ['admin','technologist','warehouse','production_manager'] },
-    { label: 'Техкарты',           icon: BookOpen,         path: '/techcards', roles: ['admin','technologist','production_manager'] },
-    { label: 'Задачи',             icon: ClipboardList,    path: '/tasks',     roles: ['admin','production_manager'] },
-    { label: 'Цех',                icon: Wrench,           path: '/workshop',  roles: ['admin','operator','production_manager'] },
-    { label: 'Аналитика',          icon: BarChart2,        path: '/analytics', roles: ['admin','production_manager'] },
-    { label: 'Чек-лист 5S',        icon: ClipboardCheck,   path: '/checklist', roles: ['admin','production_manager','operator'] },
-    { label: 'Настройки',          icon: Settings,         path: '/settings',  roles: ['admin'] },
-  ];
-
-  // Production module submenu
-  const prodItems = [
-    { label: 'Партии',     icon: Layers,      path: '/batches',   roles: ['admin','production_manager','operator','technologist'] },
-    { label: 'Сетки',      icon: Grid2X2,     path: '/screens',   roles: ['admin','production_manager','operator'] },
-    { label: 'Краска',     icon: Palette,     path: '/ink',       roles: ['admin','production_manager','operator','technologist'] },
-    { label: 'Печать',     icon: Frame,       path: '/printing',  roles: ['admin','production_manager','operator'] },
-    { label: 'Вырубка',    icon: Scissors,    path: '/diecut',    roles: ['admin','production_manager','operator'] },
-  ];
-
-  const visible = (items) => items.filter(i => i.roles.includes('all') || i.roles.includes(role));
-  const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
-
-  const NavItem = ({ item }) => (
-    <li className="sidebar-item">
-      <button
-        onClick={() => { navigate(item.path); onLinkClick?.(); }}
-        className={`sidebar-link ${isActive(item.path) ? 'active' : ''}`}
-      >
-        <item.icon size={20} />
-        <span className="sidebar-label">{item.label}</span>
-      </button>
-    </li>
-  );
-
-  const prodVisible = visible(prodItems);
-  const hasProdAccess = prodVisible.length > 0;
+  const filteredSections = NAV_SECTIONS.map(section => ({
+    ...section,
+    items: section.items.filter(item => !user?.role || item.roles.includes(user.role))
+  })).filter(section => section.items.length > 0)
 
   return (
-    <div className={`layout-sidebar ${collapsed ? 'collapsed' : ''}`}>
-      <div className="sidebar-header">
-        <div className="sidebar-logo">
-          {collapsed ? <Logo size={28} markOnly={true} /> : <Logo size={28} />}
-        </div>
+    <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
+      <div className="sidebar-logo">
+        {!collapsed && <span className="logo-text">АромаПро</span>}
+        {collapsed && <span className="logo-text" style={{ fontSize: '0.65rem', letterSpacing: '0.05em' }}>АП</span>}
       </div>
 
-      <ul className="sidebar-menu">
-        {visible(mainItems).map(item => <NavItem key={item.path} item={item} />)}
-
-        {/* Production modules section */}
-        {hasProdAccess && (
-          <>
-            {!collapsed && (
-              <li style={{ padding: '8px 12px 2px', listStyle: 'none' }}>
-                <button
-                  onClick={() => setProdOpen(o => !o)}
-                  style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    width: '100%', background: 'none', border: 'none', cursor: 'pointer',
-                    color: '#94a3b8', fontSize: '11px', fontWeight: '600',
-                    textTransform: 'uppercase', letterSpacing: '0.05em', padding: '2px 0'
-                  }}
-                >
-                  <span>Производство</span>
-                  {prodOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                </button>
-              </li>
+      <nav className="sidebar-nav" style={{ flex: 1, overflowY: 'auto' }}>
+        {filteredSections.map((section, si) => (
+          <div key={si}>
+            {!collapsed && section.label && si > 0 && (
+              <div style={{
+                fontSize: '0.62rem',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                color: 'var(--text-muted)',
+                padding: '0.75rem 1rem 0.25rem',
+                opacity: 0.6
+              }}>
+                {section.label}
+              </div>
             )}
-            {(prodOpen || collapsed) && prodVisible.map(item => <NavItem key={item.path} item={item} />)}
-          </>
-        )}
-      </ul>
+            {collapsed && si > 0 && (
+              <div style={{ height: 1, background: 'var(--border-light)', margin: '0.5rem 0.75rem' }} />
+            )}
+            {section.items.map(({ path, label, icon: Icon }) => (
+              <NavLink
+                key={path}
+                to={path}
+                className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                title={collapsed ? label : ''}
+              >
+                <Icon size={18} className="nav-icon" />
+                {!collapsed && <span className="nav-label">{label}</span>}
+              </NavLink>
+            ))}
+          </div>
+        ))}
+      </nav>
 
-      <div className="sidebar-footer">
-        <button className="sidebar-collapse-btn" onClick={onToggle}>
-          {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-        </button>
-      </div>
-    </div>
-  );
-};
-
-export default Sidebar;
+      <button className="sidebar-toggle" onClick={onToggle} title={collapsed ? 'Развернуть' : 'Свернуть'}>
+        {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        {!collapsed && <span>Свернуть</span>}
+      </button>
+    </aside>
+  )
+}

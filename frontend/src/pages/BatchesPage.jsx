@@ -521,7 +521,11 @@ const BatchDetailView = ({ batch: initialBatch, onBack, onBatchUpdated }) => {
         </div>
         <div className="card-body">
           <div style={{ display: 'grid', gap: '1rem' }}>
-            {PRODUCTION_STEPS.map((step, stepIdx) => {
+            {(() => {
+              const hasAnyInProgress = operations.some(op =>
+                op.op_status === 'in_progress' || (op.started_at && !op.completed_at)
+              );
+              return PRODUCTION_STEPS.map((step, stepIdx) => {
               const stageOps = getStageOps(step.id);
               const totalQty = getStageQuantity(step.id);
               const hasCompleted = stageOps.some(op => op.op_status === 'completed');
@@ -566,6 +570,7 @@ const BatchDetailView = ({ batch: initialBatch, onBack, onBatchUpdated }) => {
                           stepColor={step.color}
                           isAdmin={isAdmin}
                           batchId={batch.id}
+                          blockStart={hasAnyInProgress && (op.op_status === 'pending' || (!op.started_at))}
                           onStart={() => handleStartOp(op.id)}
                           onComplete={() => handleCompleteOp(op.id)}
                           onEditTime={() => openTimeEditor(op)}
@@ -613,7 +618,7 @@ const BatchDetailView = ({ batch: initialBatch, onBack, onBatchUpdated }) => {
                   )}
                 </div>
               );
-            })}
+            }); })()}
           </div>
         </div>
       </div>
@@ -697,7 +702,7 @@ const BatchDetailView = ({ batch: initialBatch, onBack, onBatchUpdated }) => {
 };
 
 // ─── Карточка операции ────────────────────────────────────────────────────────
-const OperationCard = ({ op, stepColor, isAdmin, onStart, onComplete, onEditTime }) => {
+const OperationCard = ({ op, stepColor, isAdmin, blockStart, onStart, onComplete, onEditTime }) => {
   const isPending     = op.op_status === 'pending'     || (!op.op_status && !op.started_at);
   const isInProgress  = op.op_status === 'in_progress' || (op.started_at && !op.completed_at);
   const isCompleted   = op.op_status === 'completed'   || !!op.completed_at;
@@ -767,12 +772,17 @@ const OperationCard = ({ op, stepColor, isAdmin, onStart, onComplete, onEditTime
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginLeft: '0.75rem' }}>
           {isPending && (
             <button
-              onClick={onStart}
+              onClick={blockStart ? undefined : onStart}
+              disabled={blockStart}
+              title={blockStart ? 'Дождитесь завершения текущей операции' : undefined}
               style={{
                 display: 'flex', alignItems: 'center', gap: '4px',
                 padding: '0.3rem 0.6rem', fontSize: '0.75rem',
-                background: '#3b82f6', color: 'white', border: 'none',
-                borderRadius: '0.25rem', cursor: 'pointer', whiteSpace: 'nowrap'
+                background: blockStart ? '#94a3b8' : '#3b82f6',
+                color: 'white', border: 'none',
+                borderRadius: '0.25rem',
+                cursor: blockStart ? 'not-allowed' : 'pointer',
+                whiteSpace: 'nowrap', opacity: blockStart ? 0.6 : 1
               }}
             >
               <Play size={12} /> Старт
